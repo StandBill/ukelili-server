@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.SysNewsMapper">
+	<resultMap type="model.SysNewsInfo" id="NewsMap">
+		<id property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="content" column="content"/>
+		<result property="date" column="date"/>
+		<result property="typeId" column="typeId"/>
+		<association property="user" javaType="model.User">
+			<id column="userId" property="id"/>
+			<result column="nickname" property="nickname"/>
+			<result column="email" property="email"/>
+			<result column="phone" property="phone"/>
+			<result column="rank" property="rank"/>
+		</association>
+	</resultMap>
+	<insert id="add" parameterType="model.SysNewsInfo" useGeneratedKeys="true" keyProperty="id">
+		insert into sys_news_info(userId,content,date,typeId) values(#{userId},#{content},#{date},#{typeId})
+	</insert>
+	
+	<select id="getList" resultMap="NewsMap" parameterType="model.SysNewsInfo">
+		SELECT ui.userId as 'userId',ui.nickname,ui.phone,ui.email,ui.rank,
+		sni.id,sni.content,sni.date,sni.typeId
+		from user_info ui,sys_news_info sni
+		WHERE ui.userId=sni.userId
+		<if test="typeId != 0">
+			and sni.typeId=#{typeId}
+		</if>
+		order by date desc
+		limit #{userId},10
+	</select>
+	
+	<select id="count" parameterType="model.SysNewsInfo" resultType="int">
+		SELECT count(*) as 'count' from sys_news_info
+		<if test="typeId != 0">
+			WHERE typeId=#{typeId}
+		</if>
+	</select>
+	
+	<delete id="delete" parameterType="string" flushCache="true">
+		delete from sys_news_info where id in
+		<foreach collection="array" index="index" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+</mapper>

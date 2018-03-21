@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.VideoMapper">
+	<resultMap type="model.VideoInfo" id="VideoMap">
+		<id property="videoId" column="videoId"/>
+		<result property="name" column="name"/>
+		<result property="downloads" column="downloads"/>
+		<result property="transmits" column="transmits"/>
+		<result property="srcAddress" column="srcAddress"/>
+		<result property="userId" column="userId"/>
+		<result property="date" column="date"/>
+		<result property="can_down" column="can_down"/>
+		<result property="can_transmit" column="can_transmit"/>
+		<result property="can_discuss" column="can_discuss"/>
+		<result property="coms" column="coms"/>
+		<result property="description" column="description"/>
+		<result property="prodId" column="prodId"/>
+		<result property="image" column="image"/>
+		<association property="user" javaType="model.User">
+			<id property="id" column="userId"/>
+			<result property="name" column="author"/>
+			<result property="nickname" column="nickname"/>
+		</association>
+		<association property="prod" javaType="model.ProdInfo">
+			<id property="id" column="id"/>
+			<result property="exp" column="prodName"/>
+		</association>
+	</resultMap>
+	<select id="getVideo" parameterType="string" resultType="model.VideoInfo" resultMap="VideoMap">
+		SELECT vi.videoId,vi.name,vi.downloads,vi.coms,vi.can_discuss,vi.can_down,vi.can_transmit,vi.date,vi.srcAddress,vi.image,
+		ui.name as 'author',ui.userId,ui.nickname as 'nickname',pt.id,pt.exp as 'prodName',vi.description 
+		from user_info ui,video_info vi,prod_type pt
+		where ui.userId = vi.userId and vi.prodId=pt.id
+		and vi.videoId=#{videoId}
+	</select>
+	
+	<select id="getAllVideo" parameterType="model.VideoInfo" resultMap="VideoMap">
+		SELECT vi.videoId,vi.name,vi.downloads,vi.coms,vi.transmits,vi.can_discuss,vi.can_down,vi.can_transmit,vi.date,vi.srcAddress,vi.image,
+		ui.name as 'author',ui.userId,ui.nickname as 'nickname',pt.id,pt.exp as 'prodName',vi.description 
+		from user_info ui,video_info vi,prod_type pt
+		where ui.userId = vi.userId and vi.prodId=pt.id
+		and vi.can_operate=1
+		<if test="userId != 0">
+			and ui.userId=#{userId}
+		</if>
+		<if test="prodId != 0">
+			and vi.prodId = #{prodId}
+		</if>
+		order by vi.date desc
+		limit #{coms} , 10
+	</select>
+
+	<select id="search" parameterType="model.SearchKeyInfo" resultMap="VideoMap">
+		SELECT vi.videoId,vi.name,vi.downloads,vi.coms,vi.can_discuss,vi.can_down,vi.can_transmit,vi.date,vi.srcAddress,vi.image,
+		ui.name as 'author',ui.userId,ui.nickname as 'nickname',pt.id,pt.exp as 'prodName' 
+		from user_info ui,video_info vi,prod_type pt
+		where ui.userId = vi.userId and vi.prodId=pt.id
+		and vi.name LIKE #{typeId} OR vi.description LIKE #{typeId}
+		and pt.userId=ui.userId AND pt.typeId=4
+		order by vi.date desc
+		limit #{index} , 10
+	</select>
+	
+	<insert id="addVideo" parameterType="model.VideoInfo" useGeneratedKeys="true" keyProperty="videoId">
+		insert into video_info(name,srcAddress,userId,date,can_down,can_transmit,image,can_discuss,description,prodId)
+		values(#{name},#{srcAddress},#{userId},#{date},#{can_down},#{can_transmit},#{image},#{can_discuss},#{description},#{prodId})
+	</insert>
+	
+	<delete id="delVideo" parameterType="string">
+		delete from video_info where videoId in
+		<foreach collection="array" index="index" item="videoId" open="(" separator="," close=")">
+			#{videoId}
+		</foreach>
+	</delete>
+	
+	<select id="count" parameterType="model.VideoInfo" resultType="int">
+		select count(*) from video_info
+		<if test="userId != 0">
+			where userId = #{userId}
+		</if>
+		<if test="prodId != 0">
+			and prodId=#{prodId}
+		</if>
+	</select>
+	
+	<update id="updateVideo" parameterType="model.VideoInfo">
+		update video_info set name=#{name},can_down=#{can_down},can_transmit=#{can_transmit},image=#{image},
+		description=#{description},can_discuss=#{can_discuss},prodId=#{prodId}
+		where videoId=#{videoId}
+	</update>
+	<update id="upDowns" parameterType="model.VideoInfo" flushCache="true">
+		update video_info 
+		set downloads = downloads + 1
+		where videoId=#{videoId}
+	</update>
+	<update id="upTransmit" parameterType="model.VideoInfo" flushCache="true">
+		update video_info 
+		set transmits = transmits + 1
+		where videoId=#{videoId}
+	</update>
+	<update id="upComs" parameterType="model.VideoInfo" flushCache="true">
+		update video_info 
+		<if test="coms > 0">
+			set coms=coms-1
+		</if>
+		<if test="coms == 0">
+			set coms=coms+1
+		</if>
+		where videoId=#{videoId}
+	</update>
+	<update id="forbitComs" parameterType="string" flushCache="true">
+		update video_info set can_discuss = 1-can_discuss
+		where videoId in
+		<foreach collection="array" index="index" item="videoId" open="(" separator="," close=")">
+			#{videoId}
+		</foreach>
+	</update>
+	<update id="forbitDown" parameterType="string" flushCache="true">
+		update video_info set can_down = 1-can_down
+		where videoId in
+		<foreach collection="array" index="index" item="videoId" open="(" separator="," close=")">
+			#{videoId}
+		</foreach>
+	</update>
+	<update id="forbitTransmit" parameterType="string" flushCache="true">
+		update video_info set can_transmit = 1-can_transmit
+		where videoId in
+		<foreach collection="array" index="index" item="videoId" open="(" separator="," close=")">
+			#{videoId}
+		</foreach>
+	</update>
+	
+	<update id="upStatus" parameterType="string" flushCache="true">
+		update video_info SET can_operate=1
+		WHERE srcAddress=#{srcAddress}
+	</update>
+</mapper>

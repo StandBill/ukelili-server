@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.TextInfoMapper">
+	<resultMap type="model.TextInfo" id="TextInfoMap">
+		<id property="textId" column="textId"/>
+		<result property="name" column="name"/>
+		<result property="downloads" column="downloads"/>
+		<result property="transmits" column="transmits"/>
+		<result property="coms" column="coms"/>
+		<result property="srcAddress" column="srcAddress"/>
+		<result property="userId" column="userId"/>
+		<result property="date" column="date"/>
+		<result property="can_down" column="can_down"/>
+		<result property="can_transmit" column="can_transmit"/>
+		<result property="can_discuss" column="can_discuss"/>
+		<result property="content" column="content"/>
+		<result property="count" column="count"/>
+		<association property="user" javaType="model.User">
+			<id property="id" column="userId"/>
+			<result property="name" column="author"/>
+		</association>
+		<association property="prod" javaType="model.ProdInfo">
+			<id property="id" column="prodId"/>
+			<result property="exp" column="exp"/>
+		</association>
+	</resultMap>
+	<insert id="addOne" parameterType="model.TextInfo" useGeneratedKeys="true">
+		insert into text_info(name,downloads,srcAddress,transmits,userId,date,can_down,can_transmit,content,prodId)
+		values(#{name},0,#{srcAddress},0,#{userId},#{date},#{can_down},#{can_transmit},#{content},#{proId})
+	</insert>
+	<delete id="deleteOne" parameterType="string">
+		delete from text_info where textId=#{textId}
+	</delete>
+	<delete id="deleteMany" parameterType="string" flushCache="true">
+		delete from text_info where textId in
+		<foreach collection="array" index="index" item="textId" open="(" separator="," close=")">
+			#{textId}
+		</foreach>
+	</delete>
+	
+	<select id="selectOne" parameterType="string" resultMap="TextInfoMap">
+		SELECT textId,ti.name,ti.downloads,ti.transmits,ti.date,ti.can_down,ti.can_transmit,
+		ti.content,ti.coms,ti.can_discuss,ui.userId,ui.nickname as 'author',pt.id as 'prodId',pt.exp 
+		from text_info ti,user_info ui,prod_type pt
+		WHERE ti.userId = ui.userId AND ti.prodId = pt.id AND pt.userId = ui.userId and ti.textId=#{id}
+	</select>
+	<select id="selectAll" parameterType="model.TextInfo" resultMap="TextInfoMap">
+		SELECT textId,ti.name,ti.downloads,ti.transmits,ti.date,ti.can_down,ti.can_transmit,
+		ti.content,ti.coms,ti.can_discuss,ui.userId,ui.nickname as 'author',pt.id as 'prodId',pt.exp 
+		from text_info ti,user_info ui,prod_type pt
+		WHERE ti.userId = ui.userId AND ti.prodId = pt.id AND pt.userId = ui.userId AND pt.typeId=5
+		<if test="userId != 0">
+			and ui.userId=#{userId}
+		</if>
+		<if test="proId != 0">
+			and ti.prodId = #{proId}
+		</if>
+		ORDER BY ti.date desc
+		limit #{coms} , 10
+	</select>
+	
+	<select id="search" parameterType="model.TextInfo" resultMap="TextInfoMap">
+		SELECT textId,ti.name,ti.downloads,ti.transmits,ti.date,ti.can_down,ti.can_transmit,
+		ti.content,ti.coms,ti.can_discuss,ui.userId,ui.nickname as 'author',pt.id as 'prodId',pt.exp 
+		from text_info ti,user_info ui,prod_type pt
+		WHERE ti.userId = ui.userId AND ti.prodId = pt.id AND pt.userId = ui.userId AND pt.typeId=5
+		<if test="userId != 0">
+			and ui.userId=#{userId}
+		</if>
+		<if test="proId != 0">
+			and ti.prodId = #{proId}
+		</if>
+		<if test="name != ''">
+			and (ti.name like #{name} or pt.exp like #{name} or ui.nickname like #{name} )
+		</if>
+		ORDER BY ti.date desc
+		limit #{coms} , 10
+	</select>
+	
+	
+	<update id="upComs" parameterType="model.TextInfo">
+		update text_info 
+		<if test="coms > 0">
+			set coms=coms-1
+		</if>
+		<if test="coms == 0">
+			set coms=coms+1
+		</if>
+		where textId=#{textId}
+	</update>
+	
+	<update id="upTransmit" parameterType="string">
+		update text_info set transmits = transmits + 1
+		where textId=#{textId}
+	</update>
+	
+	<update id="update" parameterType="model.TextInfo">
+		update text_info set name=#{name},can_transmit=#{can_transmit},content=#{content},can_discuss=#{can_discuss},prodId=#{proId}
+		where textId=#{textId}
+	</update>
+	
+	<select id="getLastest" parameterType="model.TextInfo" resultMap="TextInfoMap">
+		SELECT count(textId) as 'count',textId,ti.name,ti.downloads,ti.transmits,ti.date,ti.can_down,
+		ti.content,ti.coms,ti.can_discuss,ui.userId,ui.nickname as 'author',pt.id as 'prodId',pt.exp 
+		from text_info ti,user_info ui,prod_type pt
+		WHERE ti.userId = ui.userId AND ti.prodId = pt.id AND pt.userId = ui.userId
+		and date &gt;= #{content} and date &lt; #{date}
+		ORDER BY date desc
+		limit #{userId} , 10
+	</select>
+	<select id="getHotest" parameterType="model.TextInfo" resultMap="TextInfoMap">
+		SELECT count(textId) as 'count',textId,ti.name,ti.downloads,ti.transmits,ti.date,ti.can_down,
+		ti.content,ti.coms,ti.can_discuss,ui.userId,ui.nickname as 'author',pt.id as 'prodId',pt.exp 
+		from text_info ti,user_info ui,prod_type pt
+		WHERE ti.userId = ui.userId AND ti.prodId = pt.id AND pt.userId = ui.userId
+		and ti.coms &gt; 0
+		ORDER BY ti.coms desc
+		limit #{userId} , 10
+	</select>
+	
+	<select id="count" parameterType="model.TextInfo" resultType="int">
+		select count(*) from text_info
+		<if test="userId != 0">
+			where userId = #{userId}
+		</if>
+		<if test="proId != 0">
+			and prodId=#{proId}
+		</if>
+	</select>
+	
+	<update id="forbitComs" parameterType="string" flushCache="true">
+		update text_info set can_discuss = 1-can_discuss
+		where textId in
+		<foreach collection="array" index="index" item="textId" open="(" separator="," close=")">
+			#{textId}
+		</foreach>
+	</update>
+	<update id="forbitDown" parameterType="string" flushCache="true">
+		update text_info set can_down = 1-can_down
+		where textId in
+		<foreach collection="array" index="index" item="textId" open="(" separator="," close=")">
+			#{textId}
+		</foreach>
+	</update>
+	<update id="forbitTransmit" parameterType="string" flushCache="true">
+		update text_info set can_transmit = 1-can_transmit
+		where textId in
+		<foreach collection="array" index="index" item="textId" open="(" separator="," close=")">
+			#{textId}
+		</foreach>
+	</update>
+</mapper>

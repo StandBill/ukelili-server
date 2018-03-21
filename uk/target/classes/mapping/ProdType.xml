@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.ProdMapper">
+	
+	<resultMap type="model.ProdInfo" id="ProdMap">
+		<id property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="typeId" column="typeId"/>
+		<result property="exp" column="exp"/>
+	</resultMap>
+	<insert id="add" parameterType="model.ProdInfo" useGeneratedKeys="true"  keyProperty="id">
+		insert into prod_type(userId,typeId,exp) values(#{userId},#{typeId},#{exp})
+	</insert>
+
+	<select id="select" parameterType="model.DateCondition" resultMap="ProdMap">
+		SELECT * from prod_type 
+		WHERE typeId=#{start} and userId=#{end}
+	</select>
+	
+	<delete id="delete" parameterType="string">
+		delete from prod_type where id in
+		<foreach collection="array" index="index" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<select id="find" parameterType="model.ProdInfo" resultMap="ProdMap">
+		SELECT * 
+		from prod_type
+		where exp=#{exp} AND typeId=#{typeId} and userId=#{userId}
+	</select>
+</mapper>
