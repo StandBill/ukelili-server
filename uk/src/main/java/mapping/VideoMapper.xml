@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.VideoMapper">
+	<resultMap type="model.VideoInfo" id="VideoMap">
+		<id property="videoId" column="videoId"/>
+		<result property="name" column="name"/>
+		<result property="downloads" column="downloads"/>
+		<result property="transmits" column="transmits"/>
+		<result property="srcAddress" column="srcAddress"/>
+		<result property="userId" column="userId"/>
+		<result property="date" column="date"/>
+		<result property="can_down" column="can_down"/>
+		<result property="can_transmit" column="can_transmit"/>
+	</resultMap>
+	<select id="getVideo" parameterType="string" resultType="model.VideoInfo" resultMap="VideoMap">
+		select * from video_info where videoId=#{videoId}
+	</select>
+	
+	<select id="getAllVideo" resultType="model.VideoInfo" resultMap="VideoMap">
+		select * from video_info
+	</select>
+
+	<insert id="addVideo" parameterType="model.VideoInfo" useGeneratedKeys="true">
+		insert into video_info(name,downloads,transmits,srcAddress,userId,date,can_down,can_transmit,image) 
+		values(#{name},#{downloads},#{transmits},#{srcAddress},#{userId},#{date},#{can_down},#{can_transmit},#{image})
+	</insert>
+	
+	<delete id="delVideo" parameterType="string">
+		delete from video_info where videoId=#{id}
+	</delete>
+	
+	<update id="updateVideo" parameterType="model.VideoInfo">
+		update video_info set name=#{name},srcAddress=#{srcAddress},userId=#{userId},date=#{date},can_down=#{can_down},
+		can_transmit=#{can_transmit},image=#{image}
+		where videoId=#{videoId}
+	</update>
+	
+	<delete id="delMany" parameterType="string">
+		delete from video_info where videoId in
+		<foreach collection="array" index="index" item="videoId" open="(" separator="," close=")">
+			#{videoId}
+		</foreach>
+	</delete>
+</mapper>

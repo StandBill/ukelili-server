@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.ShareInfoMapper">
+	<resultMap type="model.ShareInfo" id="ShareInfoMap">
+		<id property="shareId" column="shareId"/>
+		<result property="userId" column="userId"/>
+		<result property="label" column="label"/>
+		<result property="content" column="content"/>
+		<result property="date" column="date"/>
+		<result property="srcAddress" column="srcAddress"/>
+	</resultMap>
+	<select id="getShareInfo" parameterType="string" resultMap="ShareInfoMap">
+		select * from share_info where shareId=#{shareId}
+	</select>
+	
+	<select id="getAllShareInfo" resultMap="ShareInfoMap">
+		select * from share_info
+	</select>
+	
+	<insert id="addShareInfo" parameterType="model.ShareInfo" useGeneratedKeys="true">
+		insert into share_info(userId,label,content,date,srcAddress)
+		values(#{userId},#{label},#{content},#{date},#{srcAddress})
+	</insert>
+	
+	<delete id="delShareInfo" parameterType="string" flushCache="true">
+		delete from share_info where shareId=#{shareId}
+	</delete>
+	
+	<delete id="delMany" parameterType="string">
+		delete from share_info where shareId in
+		<foreach collection="array" index="index" item="shareId" open="(" separator="," close=")">
+			#{shareId}
+		</foreach>
+	</delete>
+	
+	<update id="updateShareInfo" parameterType="model.ShareInfo">
+		update share_info set label=#{label},content=#{content},date=#{date},srcAddress=#{srcAddress}
+		where shareId=#{shareId}
+	</update>
+</mapper>

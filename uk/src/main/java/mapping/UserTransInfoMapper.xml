@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.UserTransInfoMapper">
+	<resultMap type="model.UserTransInfo" id="UsrTransInfoMap">
+		<id property="id" column="id"/>
+		<result property="id" column="id" />
+		<result property="typeId" column="typeId" />
+		<result property="filename" column="filename" />
+		<result property="date" column="date" />
+	</resultMap>
+	<select id="selectAll" parameterType="model.SearchKeyInfo" resultMap="UsrTransInfoMap">
+		SELECT uti.id,uti.filename,t.name,uti.date
+		from user_transmit_info uti,user_info ui,type_info t
+		WHERE uti.typeId=t.typeId AND ui.userId=#{userId}
+		AND uti.userId = ui.userId
+		AND t.typeId=#{typeId} OR uti.filename LIKE #{filename}
+	</select>
+	
+	<delete id="deleteOne" parameterType="string">
+		delete from user_transmit_info where id=#{id}
+	</delete>
+	<delete id="delectAll" parameterType="string">
+		delete from user_transmit_info where id in
+		<foreach collection="array" index="index" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

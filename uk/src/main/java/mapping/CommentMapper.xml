@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.CommentMapper">
+	
+	<resultMap type="model.Comment" id="CommentMap">
+		<id property="comId" column="comId"/>
+		<result property="targetId" column="targetId"/>
+		<result property="typeId" column="typeId"/>
+		<result property="content" column="content"/>
+		<result property="date" column="date"/>
+		<result property="extra" column="extra"/>
+	</resultMap>
+	<insert id="addComment" parameterType="model.Comment" useGeneratedKeys="true">
+		insert into comment(targetId,typeId,content,date,extra) values(#{targetId},#{typeId},#{content},#{date},#{extra})
+	</insert>
+	
+	<select id="selectOne" parameterType="string" resultMap="CommentMap">
+		select * from comment where comId=#{comId}
+	</select>
+	
+	<select id="selectAll" resultMap="CommentMap">
+		select * from comment
+	</select>
+	
+	<delete id="deleteOne" parameterType="string">
+		delete from comment where comId=#{comId}
+	</delete>
+	
+	<delete id="delMany" flushCache="true" parameterType="string">
+		delete from comment where comId in
+		<foreach collection="array" index="index" item="comId" open="(" separator="," close=")">
+			#{comId}
+		</foreach>
+	</delete>
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.UserMapper">
+	<resultMap type="model.User" id="UserResultMap">
+		<id property="id" column="userId"/>
+		<result property="name" column="name"/>
+		<result property="psw" column="password"/>
+		<result property="nickname" column="nickname"/>
+		<result property="rank" column="rank"/>
+		<result property="remark" column="remark"/>
+		<result property="phone" column="phone"/>
+		<result property="email" column="email"/>
+		<result property="signtime" column="signtime"/>
+	</resultMap>
+	<select id="selectByPrimaryKey" parameterType="string" resultMap="UserResultMap">
+		select * from user_info where userId=#{id}
+	</select>
+	
+	<select id="getAllUser" resultMap="UserResultMap">
+		select * from user_info
+	</select>
+	
+	<update id="UpdateUser" parameterType="model.User" flushCache="true">
+		update user_info set password=#{psw},name=#{name},nickname=#{nickname},phone=#{phone},email=#{email} where userId=#{id}
+	</update>
+	
+	<delete id="deleteUser" parameterType="string" flushCache="true">
+		delete from user_info where userId=#{id}
+	</delete>
+	
+	<delete id="delMany" parameterType="string">
+		delete from user_info where userId in
+		<foreach collection="array" index="index" item="userId" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+</mapper>

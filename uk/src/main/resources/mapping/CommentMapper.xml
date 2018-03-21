@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.CommentMapper">
+	
+	<resultMap type="model.Comment" id="CommentMap">
+		<id property="comId" column="comId"/>
+		<result property="targetId" column="targetId"/>
+		<result property="typeId" column="typeId"/>
+		<result property="content" column="content"/>
+		<result property="date" column="date"/>
+		<result property="extra" column="extra"/>
+		<result/>
+		<association property="user" javaType="model.User">
+			<id property="id" column="userId"/>
+			<result property="nickname" column="nickname"/>
+		</association>
+		<association property="user2" javaType="model.User">
+			<id property="id" column="targetUId"/>
+			<result property="nickname" column="targetName"/>
+		</association>
+	</resultMap>
+	<insert id="addComment" parameterType="model.Comment" useGeneratedKeys="true"  keyProperty="comId">
+		insert into comment(targetId,typeId,content,date,extra,author) values(#{targetId},#{typeId},#{content},#{date},#{extra},#{author})
+	</insert>
+	
+	<select id="selectOne" parameterType="string" resultMap="CommentMap">
+		select * from comment where comId=#{comId}
+	</select>
+	
+	<select id="selectAll" parameterType="model.DateCondition" resultMap="CommentMap">
+		SELECT c.comId,c.targetId,c.typeId,c.content,c.date,c.extra,u.nickname,u.userId,u2.nickname as 'targetName',u2.userId as 'targetUId'
+		from comment c,user_info u,user_info u2
+		WHERE c.author=u.userId
+		and (c.targetId = #{start} and c.typeId=#{end} or c.typeId=1 and c.extra=#{userId} or u2.userId=c.targetId and c.typeId=4)
+		and u.userId=u2.userId
+		ORDER BY c.date
+	</select>
+	
+	<select id="getMyComments" parameterType="string" resultMap="CommentMap">
+		SELECT DISTINCT c.comId,c.targetId,c.typeId,c.content,c.date,c.extra,u.nickname,u.userId
+		from comment c,user_info u,text_info ti,video_info vi
+		WHERE ((c.targetId=ti.textId AND c.typeId=5 AND ti.userId=u.userId OR c.targetId=vi.videoId AND c.typeId=4 AND vi.userId=u.userId)
+		OR (c.targetId=u.userId AND c.typeId=1))
+		AND u.userId=#{targetId} AND c.is_read=0
+	</select>
+	
+	<delete id="delete" parameterType="string">
+		delete from comment where comId in
+		<foreach collection="array" index="index" item="comId" open="(" separator="," close=")">
+			#{comId}
+		</foreach>
+	</delete>
+	<update id="update" parameterType="string" flushCache="true">
+		update comment set is_read=1 where comId in
+		<foreach collection="array" index="index" item="comId" open="(" separator="," close=")">
+			#{comId}
+		</foreach>
+	</update>
+	
+</mapper>

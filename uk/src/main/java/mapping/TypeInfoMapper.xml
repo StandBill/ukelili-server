@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.TypeInfoMapper">
+	
+	<resultMap type="model.TypeInfo" id="TypeInfoMap">
+		<id property="id" column="typeId"/>
+		<result property="name" column="name"/>
+	</resultMap>
+	<insert id="addOne" parameterType="model.TypeInfo" useGeneratedKeys="true">
+		insert into type_info(name) values(#{name})
+	</insert>
+	<delete id="deleteOne" parameterType="string">
+		delete from type_info where typeId=#{id}
+	</delete>
+	<delete id="deleteMany" parameterType="string">
+		delete from type_info where typeId in
+		<foreach collection="array" index="index" item="typeId" open="(" separator="," close=")">
+			#{typeId}
+		</foreach>
+	</delete>
+	
+	<select id="selectOne" parameterType="string" resultMap="TypeInfoMap">
+		select * from type_info where typeId=#{id}
+	</select>
+	<select id="selectAll" resultMap="TypeInfoMap">
+		select * from type_info
+	</select>
+	<update id="update" parameterType="model.TypeInfo" flushCache="true">
+		update type_info set name=#{name} where typeId=#{id}
+	</update>
+</mapper>

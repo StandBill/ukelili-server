@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.TextInfoMapper">
+	<resultMap type="model.TextInfo" id="TextInfoMap">
+		<id property="textId" column="textId"/>
+		<result property="name" column="name"/>
+		<result property="downloads" column="downloads"/>
+		<result property="transmits" column="transmits"/>
+		<result property="srcAddress" column="srcAddress"/>
+		<result property="userId" column="userId"/>
+		<result property="date" column="date"/>
+		<result property="can_down" column="can_down"/>
+		<result property="can_transmit" column="can_transmit"/>
+	</resultMap>
+	<insert id="addOne" parameterType="model.TextInfo" useGeneratedKeys="true">
+		insert into text_info(name,downloads,srcAddress,transmits,userId,date,can_down,can_transmit)
+		values(#{name},#{downloads},#{srcAddress},#{transmits},#{userId},#{date},#{can_down},#{can_transmit})
+	</insert>
+	<delete id="deleteOne" parameterType="string">
+		delete from text_info where textId=#{textId}
+	</delete>
+	<delete id="deleteMany" parameterType="string">
+		delete from text_info where textId in
+		<foreach collection="array" index="index" item="textId" open="(" separator="," close=")">
+			#{textId}
+		</foreach>
+	</delete>
+	
+	<select id="selectOne" parameterType="string" resultMap="TextInfoMap">
+		select * from text_info where textId=#{id}
+	</select>
+	<select id="selectAll" resultMap="TextInfoMap">
+		select * from text_info
+	</select>
+	<update id="update" parameterType="model.TextInfo">
+		update text_info set name=#{name},srcAddress=#{srcAddress},date=#{date},can_down=#{can_down},can_transmit=#{can_transmit}
+		where textId=#{textId}
+	</update>
+</mapper>

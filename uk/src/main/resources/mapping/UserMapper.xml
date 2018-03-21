@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.UserMapper">
+	<resultMap type="model.User" id="UserResultMap">
+		<id property="id" column="userId"/>
+		<result property="name" column="name"/>
+		<result property="psw" column="password"/>
+		<result property="nickname" column="nickname"/>
+		<result property="rank" column="rank"/>
+		<result property="remark" column="remark"/>
+		<result property="phone" column="phone"/>
+		<result property="email" column="email"/>
+		<result property="signtime" column="signtime"/>
+		<result property="lastLogin" column="lastLogin"/>
+		<result property="isForbit" column="isForbit"/>
+	</resultMap>
+	
+	<resultMap type="model.ResultGroup" id="YearGroup">
+		<id property="id" column="id"/>
+		<result property="groupName" column="groupName"/>
+		<result property="count" column="count"/>
+	</resultMap>
+	<select id="selectByPrimaryKey" parameterType="string" resultMap="UserResultMap">
+		select * from user_info where phone=#{id}
+	</select>
+	<insert id="insert" parameterType="model.User" useGeneratedKeys="true" keyProperty="id">
+		insert into user_info(nickname,password,phone,signtime,lastLogin) values(#{nickname},#{psw},#{phone},#{signtime},#{signtime})
+	</insert>
+	
+	<select id="getAllUser" resultMap="UserResultMap" parameterType="int">
+		select * from user_info limit #{num} , 10
+	</select>
+	
+	<update id="UpdateUser" parameterType="model.User" flushCache="true">
+		update user_info set name=#{name},nickname=#{nickname},email=#{email} 
+		where userId=#{id}
+	</update>
+	
+	<update id="UpdateLoginTime" parameterType="model.User" flushCache="true">
+		update user_info set lastLogin=#{lastLogin} 
+		where userId=#{id}
+	</update>
+	
+	<update id="editPassword" parameterType="model.User" flushCache="true">
+		update user_info set password=#{psw} where userId=#{id}
+	</update>
+	<select id="countUser" resultType="int">
+		select COUNT(*) as user_count from user_info
+	</select>
+	<select id="countVideo" resultType="int">
+		select COUNT(*) as video_count from video_info
+	</select>
+	<select id="countText" resultType="int">
+		select COUNT(*) as text_count from text_info
+	</select>
+	
+	<select id="newUser" parameterType="model.DateCondition" resultType="int">
+		select count(*) from user_info ui where ui.signtime&gt;=#{start} and ui.signtime &lt;=#{end}
+		and ui.userId!=#{userId}
+	</select>
+	<select id="newVideo" parameterType="model.DateCondition" resultType="int">
+		select count(*) from video_info vi where vi.date&gt;=#{start} and vi.date &lt;=#{end}
+	</select>
+	<select id="newText" parameterType="model.DateCondition" resultType="int">
+		select count(*) from text_info vi where vi.date&gt;=#{start} and vi.date &lt;=#{end}
+	</select>
+	
+	<delete id="deleteUser" parameterType="string" flushCache="true">
+		delete from user_info where userId in
+		<foreach collection="array" index="index" item="userId" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+	
+	<update id="forbit" parameterType="string">
+		update user_info set isForbit=1-isForbit where userId in
+		<foreach collection="array" index="index" item="userId" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</update>
+	
+	<select id="groupByYear" resultMap="YearGroup">
+		SELECT userId as id,SUBSTRING(signtime,1,4) as 'groupName',COUNT(signtime) as 'count'
+		from user_info
+		GROUP BY groupName;
+	</select>
+	
+	<select id="videoGroupType" resultMap="YearGroup">
+		SELECT pt.id,pt.exp as 'groupName',COUNT(vi.videoId) as 'count'
+		from video_info vi,prod_type pt
+		WHERE vi.prodId=pt.id
+		GROUP BY groupName;
+	</select>
+	
+	<select id="textGroupType" resultMap="YearGroup">
+		SELECT pt.id,pt.exp as 'groupName',COUNT(ti.textId) as 'count'
+		from text_info ti,prod_type pt
+		WHERE ti.prodId=pt.id
+		GROUP BY groupName;
+	</select>
+</mapper>
